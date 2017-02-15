@@ -49,11 +49,11 @@ namespace MagicMorpher
             
             foreach (var facet in doc.Facets)
             {
-                mg.Normals.Add(new Vector3D(facet.Normal.X, facet.Normal.Y, facet.Normal.Z));
-                for (int i = facet.Vertices.Count - 1; i >= 0; i--)
+                for (int i = 0; i < facet.Vertices.Count; i++)
                 {
                     mg.Positions.Add(new Point3D(facet.Vertices[i].X, facet.Vertices[i].Y, facet.Vertices[i].Z));
-                }
+					mg.Normals.Add(new Vector3D(facet.Normal.X, facet.Normal.Y, facet.Normal.Z));
+				}
             }
 
             ModelVisual3D m3d = new ModelVisual3D();
