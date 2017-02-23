@@ -44,29 +44,59 @@ namespace Leonardo
 		 * Proportion
 		 */
 
+
+        /* New Framing for the Process:
+         * A series of decisions.
+         * -How many primitives?
+         * -Which primitives?
+         * -Rotate?
+         * -Make more after rotate?
+         * -Translations?
+         * -Rotate/translate and do more?
+         * -How many iterations?
+         * -Which steps in each iteration?
+         * -How do we determine placement? Random? One one side or the other? Segregate? Integrate?
+         * -How to make sure they're connected? Put one, note the size, put another that you know will connect...Do them symmetric...
+         * -Place in ascending/descending size order
+         * -Any cutouts? How?
+         * 
+         * Make these decisions in different orders
+         * How do we incorporate some of the 
+         */
+
 		static void Main(string[] args)
 		{
 			_rand = new Random();
-			//int numBodies =  5 + _rand.Next(45);
+            //int numBodies =  5 + _rand.Next(45);
 
-			//Union u = new Union();
+            //Union u = new Union();
 
-			//for (int i = 0; i < numBodies; i++)
-			//{
-			//	CsgObject newPrimitive = GimmeAPrimitive();
+            //for (int i = 0; i < numBodies; i++)
+            //{
+            //	CsgObject newPrimitive = GimmeAPrimitive();
 
-			//	//placement
-			//	Vector3 translate = new Vector3(GetATransform(), GetATransform(), GetATransform());
+            //	//placement
+            //	Vector3 translate = new Vector3(GetATransform(), GetATransform(), GetATransform());
 
-			//	newPrimitive = new SetCenter(newPrimitive, translate);
+            //	newPrimitive = new SetCenter(newPrimitive, translate);
 
-			//	u = new Union(u, newPrimitive);
-			//}
+            //	u = new Union(u, newPrimitive);
+            //}
 
-			Union u = DoItWithSubdivision();
-
+            Union u = DoItWithSubdivision();
+            
+            
 			OpenSCadOutput.Save(u, "output.scad");
 		}
+
+        private static CsgObject SingleComposition()
+        {
+            CsgObject returnMe = null;
+
+
+
+            return returnMe;
+        }
 
 		private static Union DoItWithSubdivision()
 		{
@@ -75,7 +105,7 @@ namespace Leonardo
 
 			Array axes = Enum.GetValues(typeof(Axes));
 			Axes whichOne = (Axes)axes.GetValue(_rand.Next(axes.Length));
-
+            
 			double[][] axisValues = new double[3][];
 			axisValues[0] = GimmeRandomDoubles(_rand.Next(15), _xMax);
 			axisValues[1] = GimmeRandomDoubles(_rand.Next(15), _yMax);
