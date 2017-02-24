@@ -44,7 +44,6 @@ namespace Leonardo
 		 * Proportion
 		 */
 
-
         /* New Framing for the Process:
          * A series of decisions.
          * -How many primitives?
@@ -92,8 +91,33 @@ namespace Leonardo
         private static CsgObject SingleComposition()
         {
             CsgObject returnMe = null;
+			Union u = new Union();
 
+			AwesomeBox b = new AwesomeBox(150, 150, 150);
+			u.Add(b);
 
+			double averageSize = (b.XSize + b.YSize + b.ZSize) / 3.0;
+
+			foreach (Vector3 corner in b.Corners)
+			{
+				CsgObject joinThis = null;
+				double doWhat = _rand.NextDouble();
+				if(doWhat < 0.25)
+				{
+					joinThis = GimmeAPrimitive(_rand.NextDouble() * averageSize * 0.33);
+					Difference d = new Difference(u, joinThis);
+
+				}
+				else if(doWhat < 0.75)
+				{
+					joinThis = GimmeAPrimitive(_rand.NextDouble() * averageSize * 0.33);
+					u.Add(joinThis);
+				}
+				else
+				{
+					joinThis = null;
+				}
+			}
 
             return returnMe;
         }
@@ -181,13 +205,12 @@ namespace Leonardo
 			return returnArray;
 		}
 
-		private static CsgObject GimmeAPrimitive()
+		private static CsgObject GimmeAPrimitive(double size)
 		{
 			CsgObject newPrimitive = null;
 			//primitive type
 			int type = _rand.Next(4);
-			double size = GetASize();
-			double height = GetASize();
+			double height = size + _rand.NextDouble() * size * 0.25;
 
 			switch (type)
 			{
@@ -204,8 +227,8 @@ namespace Leonardo
 					newPrimitive = new Cylinder(size, height);
 					break;
 				case 4: //rectangular solid
-					double depth = GetASize();
-					double width = GetASize();
+					double depth = size + _rand.NextDouble() * size * 0.25;
+					double width = size + _rand.NextDouble() * size * 0.25;
 					newPrimitive = new Box(width, depth, size);
 					break;
 				default:
@@ -214,6 +237,11 @@ namespace Leonardo
 			}
 
 			return newPrimitive;
+		}
+
+		private static CsgObject GimmeAPrimitive()
+		{
+			return GimmeAPrimitive(GetASize());
 		}
 
 		/* Ideas:
