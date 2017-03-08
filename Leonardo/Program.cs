@@ -66,24 +66,25 @@ namespace Leonardo
 		static void Main(string[] args)
 		{
 			_rand = new Random();
-            //int numBodies =  5 + _rand.Next(45);
+			//int numBodies =  5 + _rand.Next(45);
 
-            //Union u = new Union();
+			//Union u = new Union();
 
-            //for (int i = 0; i < numBodies; i++)
-            //{
-            //	CsgObject newPrimitive = GimmeAPrimitive();
+			//for (int i = 0; i < numBodies; i++)
+			//{
+			//	CsgObject newPrimitive = GimmeAPrimitive();
 
-            //	//placement
-            //	Vector3 translate = new Vector3(GetATransform(), GetATransform(), GetATransform());
+			//	//placement
+			//	Vector3 translate = new Vector3(GetATransform(), GetATransform(), GetATransform());
 
-            //	newPrimitive = new SetCenter(newPrimitive, translate);
+			//	newPrimitive = new SetCenter(newPrimitive, translate);
 
-            //	u = new Union(u, newPrimitive);
-            //}
+			//	u = new Union(u, newPrimitive);
+			//}
 
-            Union u = DoItWithSubdivision();
-            
+			//            Union u = DoItWithSubdivision();
+
+			CsgObject u = SingleComposition();
             
 			OpenSCadOutput.Save(u, "output.scad");
 		}
@@ -93,12 +94,28 @@ namespace Leonardo
             CsgObject returnMe = null;
 			Union u = new Union();
 
-			AwesomeBox b = new AwesomeBox(150, 150, 150);
-			u.Add(b);
+			IAwesomeSolid solid = null;
 
-			double averageSize = (b.XSize + b.YSize + b.ZSize) / 3.0;
+			int whichOne = _rand.Next(2);
 
-			foreach (Vector3 corner in b.Corners)
+			switch (whichOne)
+			{
+				case 0:
+					solid = new AwesomeBox(150, 150, 150);
+					break;
+				case 1:
+					solid = new AwesomeSphere(150);
+					break;
+				default:
+					solid = new AwesomeBox(150, 150, 150);
+					break;
+			}
+			
+			u.Add(solid as CsgObject);
+
+			double averageSize = solid.GetAverageSize();
+
+			foreach (Vector3 attachPoint in solid.GetAttachPoints())
 			{
 				CsgObject joinThis = null;
 				double doWhat = _rand.NextDouble();

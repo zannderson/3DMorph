@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Leonardo
 {
-    public class AwesomeBox : Box
+    public class AwesomeBox : Box, IAwesomeSolid
     {
         public AwesomeBox(Vector3 size, string name = "", bool createCentered = true) : base(size, name, createCentered)
         {
@@ -58,6 +58,18 @@ namespace Leonardo
 				}
 				return _sideCenters;
 			}
+		}
+
+		public List<Vector3> GetAttachPoints()
+		{
+			List<Vector3> attachPoints = new List<Vector3>(Corners);
+			attachPoints.AddRange(SideCenters);
+			return attachPoints;
+		}
+
+		public double GetAverageSize()
+		{
+			return XSize + YSize + ZSize / 3.0;
 		}
 
         private Vector3 _translation;

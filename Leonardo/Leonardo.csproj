@@ -50,6 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AwesomeBox.cs" />
+    <Compile Include="AwesomeSphere.cs" />
+    <Compile Include="IAwesomeSolid.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
