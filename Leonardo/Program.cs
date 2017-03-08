@@ -63,6 +63,14 @@ namespace Leonardo
          * How do we incorporate some of the 
          */
 
+        /* Some new ideas from MEXICA:
+         * So we can encode things like balance or space or mass with some kind of a metric
+         * IE when we add a new volume we update the balance and space numbers to reflect that things are off
+         * Maybe there'd be like an x, y, z balance? And a measure of how full some imaginary box is?
+         * 
+         * 
+         */
+
 		static void Main(string[] args)
 		{
 			_rand = new Random();
