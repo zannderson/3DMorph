@@ -27,15 +27,16 @@ namespace Leonardo
             {
                 if(_corners == null)
                 {
+                    var center = GetCenter();
                     _corners = new Vector3[8];
-                    _corners[0] = Translation;
-                    _corners[1] = new Vector3(Translation.x + XSize, Translation.y, Translation.z);
-					_corners[2] = new Vector3(Translation.x, Translation.y + YSize, Translation.z);
-					_corners[3] = new Vector3(Translation.x, Translation.y, Translation.z + ZSize);
-					_corners[4] = new Vector3(Translation.x + XSize, Translation.y + YSize, Translation.z);
-					_corners[5] = new Vector3(Translation.x + XSize, Translation.y, Translation.z + ZSize);
-					_corners[6] = new Vector3(Translation.x, Translation.y + YSize, Translation.z + ZSize);
-					_corners[7] = new Vector3(Translation.x + XSize, Translation.y + YSize, Translation.z + ZSize);
+                    _corners[0] = new Vector3(center.x - XSize / 2, center.y - YSize / 2, center.z - ZSize / 2);
+                    _corners[1] = new Vector3(center.x + XSize / 2, center.y - YSize / 2, center.z - ZSize / 2);
+                    _corners[2] = new Vector3(center.x - XSize / 2, center.y + YSize / 2, center.z - ZSize / 2);
+                    _corners[3] = new Vector3(center.x - XSize / 2, center.y - YSize / 2, center.z + ZSize / 2);
+                    _corners[4] = new Vector3(center.x + XSize / 2, center.y + YSize / 2, center.z - ZSize / 2);
+                    _corners[5] = new Vector3(center.x - XSize / 2, center.y + YSize / 2, center.z + ZSize / 2);
+                    _corners[6] = new Vector3(center.x + XSize / 2, center.y - YSize / 2, center.z + ZSize / 2);
+                    _corners[7] = new Vector3(center.x + XSize / 2, center.y + YSize / 2, center.z + ZSize / 2);
 				}
                 return _corners;
             }

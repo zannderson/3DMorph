@@ -82,23 +82,31 @@ namespace Leonardo
 			//	u = new Union(u, newPrimitive);
 			//}
 
-			//            Union u = DoItWithSubdivision();
+            //Union u = DoItWithSubdivision();
 
-			CsgObject u = SingleComposition();
+            CsgObject theThing = SingleComposition();
             
-			OpenSCadOutput.Save(u, "output.scad");
+			OpenSCadOutput.Save(theThing, "output.scad");
 		}
 
         private static CsgObject SingleComposition()
         {
+            //TODO: make some bounds on how crazy or tame this goes with relative sizes...IE does the main thing
+            //get more or less emphasis?
             CsgObject returnMe = null;
 			Union u = new Union();
 
 			IAwesomeSolid solid = null;
 
 			int whichOne = _rand.Next(2);
+            List<CsgObject> unions = new List<CsgObject>();
+            List<CsgObject> differences = new List<CsgObject>();
 
-			switch (whichOne)
+            //TODO: Order prolly matters here? Maybe? So right now we're gonna build lists, do unions, then
+            //do differences. Maybe later we should do it in whatever order they happen in, or at least
+            //consider it...
+
+			foreach (Vector3 corner in b.Corners)
 			{
 				case 0:
 					solid = new AwesomeBox(150, 150, 150);
@@ -119,22 +127,39 @@ namespace Leonardo
 			{
 				CsgObject joinThis = null;
 				double doWhat = _rand.NextDouble();
-				if(doWhat < 0.25)
+				if(doWhat < 0.33)
 				{
-					joinThis = GimmeAPrimitive(_rand.NextDouble() * averageSize * 0.33);
-					Difference d = new Difference(u, joinThis);
-
+					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.1, averageSize * 1.25), corner);
+                    
+                    differences.Add(joinThis);
 				}
-				else if(doWhat < 0.75)
+				else if(doWhat < 0.7)
 				{
-					joinThis = GimmeAPrimitive(_rand.NextDouble() * averageSize * 0.33);
-					u.Add(joinThis);
+					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.1, averageSize * 1.25), corner);
+                    unions.Add(joinThis);
 				}
 				else
 				{
 					joinThis = null;
 				}
 			}
+
+            foreach (var solid in unions)
+            {
+                u.Add(solid);
+                returnMe = u;
+            }
+            if(differences.Count > 0)
+            {
+                Difference d = new Difference(returnMe, differences[0]);
+                for (int i = 1; i < differences.Count; i++)
+                {
+                    d.AddToSubtractList(differences[i]);
+                }
+                returnMe = d;
+            }
+
+
 
             return returnMe;
         }
@@ -222,12 +247,22 @@ namespace Leonardo
 			return returnArray;
 		}
 
-		private static CsgObject GimmeAPrimitive(double size)
+        private static double GimmeABoundedDouble(double min, double max)
 		{
+            if(min >= max)
+            {
+                throw new Exception("You dummy! Make the max strictly larger than the min.");
+            }
+            double range = max - min;
+            return _rand.NextDouble() * range + min;
+        }
+
+        private static CsgObject GimmeAPrimitive(double size, Vector3 center)
+        {
 			CsgObject newPrimitive = null;
 			//primitive type
 			int type = _rand.Next(4);
-			double height = size + _rand.NextDouble() * size * 0.25;
+            double height = GimmeABoundedDouble(size * 0.1, size * 2.0);
 
 			switch (type)
 			{
@@ -244,8 +279,8 @@ namespace Leonardo
 					newPrimitive = new Cylinder(size, height);
 					break;
 				case 4: //rectangular solid
-					double depth = size + _rand.NextDouble() * size * 0.25;
-					double width = size + _rand.NextDouble() * size * 0.25;
+                    double depth = GimmeABoundedDouble(size * 0.1, size * 2.0);
+                    double width = GimmeABoundedDouble(size * 0.1, size * 2.0);
 					newPrimitive = new Box(width, depth, size);
 					break;
 				default:
@@ -253,7 +288,14 @@ namespace Leonardo
 					break;
 			}
 
+            newPrimitive = new SetCenter(newPrimitive, center);
+
 			return newPrimitive;
+		}
+
+		private static CsgObject GimmeAPrimitive(double size)
+		{
+            return GimmeAPrimitive(size, new Vector3(0, 0, 0));
 		}
 
 		private static CsgObject GimmeAPrimitive()
