@@ -21,7 +21,6 @@ namespace Leonardo
 		private const double _yMax = 200.0;
 		private const double _zMax = 300.0;
 		private const double _smallest = 5.0;
-		private const double _largest = 100.0;
 
 		/* So, a general way of doing things:
 		 * -Choose some way of how to pick primitives
@@ -83,44 +82,17 @@ namespace Leonardo
 			//	u = new Union(u, newPrimitive);
 			//}
 
+<<<<<<< HEAD
+			//            Union u = DoItWithSubdivision();
+
+			CsgObject u = SingleComposition();
+=======
             //Union u = DoItWithSubdivision();
 
-            CsgObject theThing = StringEmUp();
-
-			//NGonExtrusion what = new NGonExtrusion(20, 13, 15);
+            CsgObject theThing = SingleComposition();
+>>>>>>> 2d711a7c095400ac61de5d12f180438b48586117
             
 			OpenSCadOutput.Save(theThing, "output.scad");
-		}
-
-		private static CsgObject StringEmUp()
-		{
-			/*
-			 * Pick a primitive type (or a pattern or random)
-			 * Pick a start and end size (or go up and down...)
-			 * Pick a distance?
-			 * Pick a line/parabola/periodic function
-			 * Go for it
-			 */
-
-			Union u = new Union();
-
-			double start = GimmeABoundedDouble(_smallest, _largest);
-			double end = GimmeABoundedDouble(_smallest, _largest);
-
-			int howMany = _rand.Next(5, 20);
-
-			double sizeIncrement = (start - end) / (double)howMany;
-
-			double z = 0;
-			for (int i = 0; i < howMany; i++)
-			{
-				double radius = start + sizeIncrement * i;
-				AwesomeSphere awe = new AwesomeSphere(start + sizeIncrement * i);
-				Translate t = new Translate(awe as CsgObject, new Vector3(0, 0, z));
-				u.Add(t);
-				z += radius;
-			}
-			return u;
 		}
 
         private static CsgObject SingleComposition()
@@ -133,29 +105,33 @@ namespace Leonardo
 			IAwesomeSolid solid = null;
 
 			int whichOne = _rand.Next(2);
+
+			switch (whichOne)
+			{
+				case 0:
+					solid = new AwesomeBox(150, 150, 150);
+					break;
+				case 1:
+					solid = new AwesomeSphere(150);
+					break;
+				default:
+					solid = new AwesomeBox(150, 150, 150);
+					break;
+			}
+			
+			u.Add(solid as CsgObject);
+
+<<<<<<< HEAD
+			double averageSize = solid.GetAverageSize();
+=======
+			double averageSize = (b.XSize + b.YSize + b.ZSize) / 3.0;
             List<CsgObject> unions = new List<CsgObject>();
             List<CsgObject> differences = new List<CsgObject>();
 
             //TODO: Order prolly matters here? Maybe? So right now we're gonna build lists, do unions, then
             //do differences. Maybe later we should do it in whatever order they happen in, or at least
             //consider it...
-
-			//foreach (Vector3 corner in b.Corners)
-			//{
-			//	case 0:
-			//		solid = new AwesomeBox(150, 150, 150);
-			//		break;
-			//	case 1:
-			//		solid = new AwesomeSphere(150);
-			//		break;
-			//	default:
-			//		solid = new AwesomeBox(150, 150, 150);
-			//		break;
-			//}
-			
-			u.Add(solid as CsgObject);
-
-			double averageSize = solid.GetAverageSize();
+>>>>>>> 2d711a7c095400ac61de5d12f180438b48586117
 
 			foreach (Vector3 attachPoint in solid.GetAttachPoints())
 			{
@@ -163,13 +139,13 @@ namespace Leonardo
 				double doWhat = _rand.NextDouble();
 				if(doWhat < 0.33)
 				{
-					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.1, averageSize * 1.25), attachPoint);
+					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.1, averageSize * 1.25), corner);
                     
                     differences.Add(joinThis);
 				}
 				else if(doWhat < 0.7)
 				{
-					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.1, averageSize * 1.25), attachPoint);
+					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.1, averageSize * 1.25), corner);
                     unions.Add(joinThis);
 				}
 				else
@@ -178,9 +154,9 @@ namespace Leonardo
 				}
 			}
 
-            foreach (var thing in unions)
+            foreach (var solid in unions)
             {
-                u.Add(thing);
+                u.Add(solid);
                 returnMe = u;
             }
             if(differences.Count > 0)
@@ -282,7 +258,7 @@ namespace Leonardo
 		}
 
         private static double GimmeABoundedDouble(double min, double max)
-		{
+        {
             if(min >= max)
             {
                 throw new Exception("You dummy! Make the max strictly larger than the min.");
@@ -293,39 +269,39 @@ namespace Leonardo
 
         private static CsgObject GimmeAPrimitive(double size, Vector3 center)
         {
-			CsgObject newPrimitive = null;
-			//primitive type
-			int type = _rand.Next(4);
+            CsgObject newPrimitive = null;
+            //primitive type
+            int type = _rand.Next(4);
             double height = GimmeABoundedDouble(size * 0.1, size * 2.0);
 
-			switch (type)
-			{
-				case 0: //cube
-					newPrimitive = new Box(size, size, size);
-					break;
-				case 1: //sphere
-					newPrimitive = new Sphere(size);
-					break;
-				case 2: //cone
-					newPrimitive = new Cylinder(size, 0, height);
-					break;
-				case 3: //cylinder
-					newPrimitive = new Cylinder(size, height);
-					break;
-				case 4: //rectangular solid
+            switch (type)
+            {
+                case 0: //cube
+                    newPrimitive = new Box(size, size, size);
+                    break;
+                case 1: //sphere
+                    newPrimitive = new Sphere(size);
+                    break;
+                case 2: //cone
+                    newPrimitive = new Cylinder(size, 0, height);
+                    break;
+                case 3: //cylinder
+                    newPrimitive = new Cylinder(size, height);
+                    break;
+                case 4: //rectangular solid
                     double depth = GimmeABoundedDouble(size * 0.1, size * 2.0);
                     double width = GimmeABoundedDouble(size * 0.1, size * 2.0);
-					newPrimitive = new Box(width, depth, size);
-					break;
-				default:
-					newPrimitive = new Box(size, size, size);
-					break;
-			}
+                    newPrimitive = new Box(width, depth, size);
+                    break;
+                default:
+                    newPrimitive = new Box(size, size, size);
+                    break;
+            }
 
             newPrimitive = new SetCenter(newPrimitive, center);
 
-			return newPrimitive;
-		}
+            return newPrimitive;
+        }
 
 		private static CsgObject GimmeAPrimitive(double size)
 		{
