@@ -22,7 +22,7 @@ namespace Leonardo
 		private const double _zMax = 300.0;
 		private const double _smallest = 5.0;
 
-		/* So, a general way of doing things:
+        /* So, a general way of doing things:
 		 * -Choose some way of how to pick primitives
 		 * -Choose some way of how to pick how many
 		 * -Choose some way of how to pick sizes
@@ -34,7 +34,7 @@ namespace Leonardo
 		 * -Play with proportionality of volumes
 		 */
 
-		/* Composition principles:
+        /* Composition principles:
 		 * Mass vs space
 		 * Volumes (how many)
 		 * Negative volume
@@ -71,7 +71,21 @@ namespace Leonardo
          * 
          */
 
-		static void Main(string[] args)
+        /* Ideas:
+		 * have it choose n points equidistant from one another in 3-space, put stuff there of the same or
+		 * different or a handful of sizes
+		 * have it place stuff so that it knows where the last one was, and make the size a function
+		 * of the distance from the last one and its size...
+		 * have it change orientation of stuff, because that makes things more interesting - come up with
+		 * smart ways for it to do this
+		 * it should maintain some kind of knowledge of what it made - how many primitives are there, what are
+		 * they, what sizes are they, what's their translation (location), what rotation do they have
+		 * pick a size or size range and make a bunch of things those sizes
+		 * pick an interesting x, y, or z point and put a bunch of stuff there, ranging in the other two
+		 * maybe use a mathematical equation to produce sizes or positions...
+		 */
+
+        static void Main(string[] args)
 		{
 			_rand = new Random();
             //int numBodies =  5 + _rand.Next(45);
@@ -92,10 +106,18 @@ namespace Leonardo
 
             //Union u = DoItWithSubdivision();
 
+            //RotateExtrude re = new RotateExtrude(new double[] { 1.0, -1.0, 2, 1, 2, 2.0, 1, 1, 3, -5, 1, 8, 9, 2, 0, 0, 2, -3, 5, -5, 1, 2, 3, 8, 9, 9, 10, 11, 12, 13, 11, 7, 7, 15, 3, 1, 3, 1 });
+            RotateExtrude re2 = new RotateExtrude(new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(3, 4), new Vector2(3, 1), new Vector2(0, 0) }, 1, Alignment.x);
+
             CsgObject theThing = SingleComposition();
             
-			OpenSCadOutput.Save(theThing, "output.scad");
+			OpenSCadOutput.Save(re2, "output.scad");
 		}
+
+        private static CsgObject StringEmUp()
+        {
+            return null;
+        }
 
         private static CsgObject SingleComposition()
         {
@@ -294,20 +316,6 @@ namespace Leonardo
 		{
 			return GimmeAPrimitive(GetASize());
 		}
-
-		/* Ideas:
-		 * have it choose n points equidistant from one another in 3-space, put stuff there of the same or
-		 * different or a handful of sizes
-		 * have it place stuff so that it knows where the last one was, and make the size a function
-		 * of the distance from the last one and its size...
-		 * have it change orientation of stuff, because that makes things more interesting - come up with
-		 * smart ways for it to do this
-		 * it should maintain some kind of knowledge of what it made - how many primitives are there, what are
-		 * they, what sizes are they, what's their translation (location), what rotation do they have
-		 * pick a size or size range and make a bunch of things those sizes
-		 * pick an interesting x, y, or z point and put a bunch of stuff there, ranging in the other two
-		 * maybe use a mathematical equation to produce sizes or positions...
-		 */
 
 	}
 
