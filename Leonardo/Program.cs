@@ -21,7 +21,7 @@ namespace Leonardo
 		private const double _yMax = 200.0;
 		private const double _zMax = 300.0;
 		private const double _smallest = 5.0;
-		private const double _largest = 100.0;
+		private const double _largest = 200.0;
 
 		/* So, a general way of doing things:
 		 * -Choose some way of how to pick primitives
@@ -64,13 +64,36 @@ namespace Leonardo
          * How do we incorporate some of the 
          */
 
-        /* Some new ideas from MEXICA:
-         * So we can encode things like balance or space or mass with some kind of a metric
-         * IE when we add a new volume we update the balance and space numbers to reflect that things are off
-         * Maybe there'd be like an x, y, z balance? And a measure of how full some imaginary box is?
-         * 
-         * 
-         */
+		/*
+		 * Pick a point (random, something on an existing shape, something from a group of points)
+		 * Do a thing there (random, all the same thing with random parameters, 
+		 * Repeat
+		 */
+
+		/*
+		 * Pi day chat with Dan:
+		 * -Maybe just do all spheres
+		 * -They'd look good
+		 * -And you could be more random
+		 * -Subtraction could still lead to voids and interesting shapes
+		 * -Need to automate "picture taking" - GET TO WORK ON THIS
+		 * -THERE IS SO MUCH WORK TO DO TO MAKE THIS COOLER
+		 * -Need to automate more of the process in general
+		 * 
+		 * Methods for doing:
+		 * -Size
+		 * -Shape(?)
+		 * -Position
+		 * -Relative position
+		 * 
+		 * Include:
+		 * -Fixed
+		 * -Random
+		 * -Mathematical function
+		 * -Relative to others
+		 * 
+		 * Possibly instead of just spheres, maybe try doing just cubes or just cones or cylinders?
+		 */
 
 		static void Main(string[] args)
 		{
@@ -123,7 +146,7 @@ namespace Leonardo
 			for (int i = 0; i < howMany; i++)
 			{
 				double radius = start + sizeIncrement * i;
-				AwesomeSphere awe = new AwesomeSphere(start + sizeIncrement * i);
+				Sphere awe = new Sphere(start + sizeIncrement * i);
 				Translate t = new Translate(awe as CsgObject, new Vector3(0, 0, z));
 				u.Add(t);
 				z += radius;
@@ -204,6 +227,25 @@ namespace Leonardo
 
 
             return returnMe;
+        }
+
+        private static CsgObject MakeRandomSpheres()
+        {
+            int makeThisMany = _rand.Next(20);
+            Union u = new Union();
+            List<Sphere> spheres = new List<Sphere>();
+            for (int i = 0; i < makeThisMany; i++)
+            {
+                if(spheres.Count > 0)
+                {
+                    int whichToAttachTo = _rand.Next(spheres.Count);
+                    Sphere attachToMe = spheres[whichToAttachTo];
+                }
+                else
+                {
+                    Sphere s = new Sphere(GimmeABoundedDouble(_smallest, _largest));
+                }
+            }
         }
 
 		private static Union DoItWithSubdivision()
@@ -297,6 +339,11 @@ namespace Leonardo
             }
             double range = max - min;
             return _rand.NextDouble() * range + min;
+        }
+
+        private static double DistanceBetweenPoints(Vector3 a, Vector3 b)
+        {
+            return Math.Sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
         }
 
         private static CsgObject GimmeAPrimitive(double size, Vector3 center)
