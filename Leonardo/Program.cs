@@ -98,21 +98,21 @@ namespace Leonardo
 		static void Main(string[] args)
 		{
 			_rand = new Random();
-			//int numBodies =  5 + _rand.Next(45);
+            //int numBodies =  5 + _rand.Next(45);
 
-			//Union u = new Union();
+            //Union u = new Union();
 
-			//for (int i = 0; i < numBodies; i++)
-			//{
-			//	CsgObject newPrimitive = GimmeAPrimitive();
+            //for (int i = 0; i < numBodies; i++)
+            //{
+            //	CsgObject newPrimitive = GimmeAPrimitive();
 
-			//	//placement
-			//	Vector3 translate = new Vector3(GetATransform(), GetATransform(), GetATransform());
+            //	//placement
+            //	Vector3 translate = new Vector3(GetATransform(), GetATransform(), GetATransform());
 
-			//	newPrimitive = new SetCenter(newPrimitive, translate);
+            //	newPrimitive = new SetCenter(newPrimitive, translate);
 
-			//	u = new Union(u, newPrimitive);
-			//}
+            //	u = new Union(u, newPrimitive);
+            //}
 
             //Union u = DoItWithSubdivision();
 
@@ -197,7 +197,29 @@ namespace Leonardo
 				z += radius;
 			}
 			return u;
-		}
+        }
+
+        private static CsgObject StringEmUpCrazy()
+        {
+            Union u = new Union();            
+            int howMany = _rand.Next(5, 20);
+            double radius = GimmeABoundedDouble(_smallest, _largest);
+            Vector3 center = Vector3.Zero;
+            for (int i = 0; i < howMany; i++)
+            {
+                Vector3 direction = GimmeADirection();
+                Vector3 translation = center + direction * radius;
+                center = center + direction * radius;
+                double percentChange = GimmeABoundedDouble(0, 0.25);
+                double biggerOrSmaller = GimmeABoundedDouble(0, 1);
+                radius = biggerOrSmaller >= 0.5 ? radius + radius * percentChange : radius - radius * percentChange;
+                Sphere awe = new Sphere(radius);
+                Translate t = new Translate(awe, translation);
+                u.Add(t);
+            }
+            return u;
+
+        }
 
         private static CsgObject SingleComposition()
         {
@@ -278,24 +300,164 @@ namespace Leonardo
             return returnMe;
         }
 
-        //private static CsgObject MakeRandomSpheres()
-        //{
-        //    int makeThisMany = _rand.Next(20);
-        //    Union u = new Union();
-        //    List<Sphere> spheres = new List<Sphere>();
-        //    for (int i = 0; i < makeThisMany; i++)
-        //    {
-        //        if(spheres.Count > 0)
-        //        {
-        //            int whichToAttachTo = _rand.Next(spheres.Count);
-        //            Sphere attachToMe = spheres[whichToAttachTo];
-        //        }
-        //        else
-        //        {
-        //            Sphere s = new Sphere(GimmeABoundedDouble(_smallest, _largest));
-        //        }
-        //    }
-        //}
+        private static CsgObject MakeRandomSpheres()
+        {
+            int makeThisMany = _rand.Next(20);
+            Union u = new Union();
+            Sphere[] spheres = new Sphere[makeThisMany];
+            Vector3[] translations = new Vector3[makeThisMany];
+            for (int i = 0; i < makeThisMany; i++)
+            {
+                Sphere newS = null;
+                Sphere attachToMe = null;
+                int whichToAttachTo = -1;
+                if(i > 0)
+                {
+                    whichToAttachTo = _rand.Next(i);
+                    attachToMe = spheres[whichToAttachTo];
+                }
+                newS = new Sphere(GimmeABoundedDouble(_smallest, _largest));
+                Translate t = null;
+                Vector3 translation = Vector3.NegativeInfinity;
+                if(attachToMe != null)
+                {
+                    double aRadius = attachToMe.Radius;
+                    double bRadius = newS.Radius;
+
+                    double overlap = GimmeABoundedDouble(0.05, 0.95);
+                    Vector3 direction = GimmeADirection();
+                    double maxLength = aRadius + bRadius;
+                    double minLength = Math.Abs(aRadius - bRadius);
+                    double range = maxLength - minLength;
+
+                    double goThisFar = range * overlap;
+
+                    translation = translations[whichToAttachTo] + direction * goThisFar;
+
+                    t = new Translate(newS, translation);
+                }
+                else
+                {
+                    translation = new Vector3(GimmeABoundedDouble(0, _xMax), GimmeABoundedDouble(0, _yMax), GimmeABoundedDouble(0, _zMax));
+                    t = new Translate(newS, translation);
+                }
+                translations[i] = translation;
+                spheres[i] = newS;
+
+                double diffMe = GimmeABoundedDouble(0, 1);
+                if (diffMe >= 0.75)
+                {
+                    Difference d = new Difference(u, new Translate(newS, translation));
+                    u = new Union();
+                    u.Add(d);
+                }
+                else
+                {
+                    u.Add(new Translate(newS, translation));
+                }
+            }
+            return u;
+        }
+
+        private static CsgObject SphereWithSurfaceSpheres()
+        {
+            Union u = new Union();
+            Sphere mainSphere = new Sphere(GimmeABoundedDouble(_smallest, _largest));
+            u.Add(mainSphere);
+            int howManyBumps = _rand.Next(20);
+            //size range is 0.25-0.75 of main sphere's radius
+            //double howMuchToUse = GimmeABoundedDouble(0.1, 1);
+            for (int i = 0; i < howManyBumps; i++)
+            {
+                Vector3 direction = GimmeADirection();
+                double radius = GimmeABoundedDouble(0.25, 0.75) * mainSphere.Radius;
+                Sphere bump = new Sphere(radius);
+                Translate t = new Translate(bump, mainSphere.GetCenter() + direction * mainSphere.Radius);
+                u.Add(t);
+            }
+            return u;
+        }
+
+        private static CsgObject SphereWithSmartSurfaceSpheres()
+        {
+            Union u = new Union();
+            Sphere mainSphere = new Sphere(GimmeABoundedDouble(_smallest, _largest));
+            u.Add(mainSphere);
+            int howManyBumps = _rand.Next(5) + 2;
+            for (int i = 0; i < howManyBumps; i++)
+            {
+                Vector3 direction = GimmeADirection();
+                double radius = GimmeABoundedDouble(0.25, 0.75) * mainSphere.Radius;
+                Sphere bump = new Sphere(radius);
+                Translate t = new Translate(bump, mainSphere.GetCenter() + direction * mainSphere.Radius);
+                u.Add(t);
+
+                double doOpposite = GimmeABoundedDouble(0, 1);
+                double doOneAxis = GimmeABoundedDouble(0, 1);
+                double doOtherAxis = GimmeABoundedDouble(0, 1);
+
+                Vector3 orthogonalOne = CrossProduct(direction, new Vector3(direction.z, direction.x, direction.y));
+                Vector3 orthogonalTwo = CrossProduct(direction, orthogonalOne);
+
+                if(doOpposite >= 0.25)
+                {
+                    double diff = GimmeABoundedDouble(0, 1);
+                    Sphere opposite = new Sphere(radius);
+                    Translate to = new Translate(opposite, mainSphere.GetCenter() - direction * mainSphere.Radius);
+                    if (diff >= 0.75)
+                    {
+                        Difference d = new Difference(u, to);
+                        u = new Union();
+                        u.Add(d);
+                    }
+                    else
+                    {
+                        u.Add(to);
+                    }
+                }
+                if(doOneAxis >= 0.66)
+                {
+                    double diff = GimmeABoundedDouble(0, 1);
+                    Sphere oneOne = new Sphere(radius);
+                    Sphere oneTwo = new Sphere(radius);
+                    Translate tOne = new Translate(oneOne, mainSphere.GetCenter() + orthogonalOne * mainSphere.Radius);
+                    Translate tTwo = new Translate(oneOne, mainSphere.GetCenter() - orthogonalOne * mainSphere.Radius);
+                    if (diff >= 0.75)
+                    {
+                        Difference d = new Difference(u, tOne);
+                        Difference d2 = new Difference(d, tTwo);
+                        u = new Union();
+                        u.Add(d2);
+                    }
+                    else
+                    {
+                        u.Add(tOne);
+                        u.Add(tTwo);
+                    }
+                }
+                if (doOtherAxis >= 0.66)
+                {
+                    double diff = GimmeABoundedDouble(0, 1);
+                    Sphere oneOne = new Sphere(radius);
+                    Sphere oneTwo = new Sphere(radius);
+                    Translate tOne = new Translate(oneOne, mainSphere.GetCenter() + orthogonalTwo * mainSphere.Radius);
+                    Translate tTwo = new Translate(oneOne, mainSphere.GetCenter() - orthogonalTwo * mainSphere.Radius);
+                    if (diff >= 0.5)
+                    {
+                        Difference d = new Difference(u, tOne);
+                        Difference d2 = new Difference(d, tTwo);
+                        u = new Union();
+                        u.Add(d2);
+                    }
+                    else
+                    {
+                        u.Add(tOne);
+                        u.Add(tTwo);
+                    }
+                }
+            }
+            return u;
+        }
 
 		private static Union DoItWithSubdivision()
 		{
@@ -468,7 +630,26 @@ namespace Leonardo
 			return returnThis;
 		}
 
-		/* Ideas:
+        private static Vector3 GimmeADirection()
+        {
+            Vector3 direction = new Vector3(GimmeABoundedDouble(0, 1) - 0.5, GimmeABoundedDouble(0, 1) - 0.5, GimmeABoundedDouble(0, 1) - 0.5);
+            direction.Normalize();
+            return direction;
+        }
+
+        private static Vector3 CrossProduct(Vector3 v1, Vector3 v2)
+        {
+            double x, y, z;
+            x = v1.y * v2.z - v2.y * v1.z;
+            y = (v1.x * v2.z - v2.x * v1.z) * -1;
+            z = v1.x * v2.y - v2.x * v1.y;
+
+            var rtnvector = new Vector3(x, y, z);
+            rtnvector.Normalize(); //optional
+            return rtnvector;
+        }
+
+        /* Ideas:
 		 * have it choose n points equidistant from one another in 3-space, put stuff there of the same or
 		 * different or a handful of sizes
 		 * have it place stuff so that it knows where the last one was, and make the size a function
@@ -482,7 +663,7 @@ namespace Leonardo
 		 * maybe use a mathematical equation to produce sizes or positions...
 		 */
 
-	}
+    }
 
 	public enum Axes
 	{
