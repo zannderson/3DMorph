@@ -23,7 +23,7 @@ namespace Leonardo
 		private const double _smallest = 5.0;
 		private const double _largest = 200.0;
 
-		/* So, a general way of doing things:
+        /* So, a general way of doing things:
 		 * -Choose some way of how to pick primitives
 		 * -Choose some way of how to pick how many
 		 * -Choose some way of how to pick sizes
@@ -95,7 +95,21 @@ namespace Leonardo
 		 * Possibly instead of just spheres, maybe try doing just cubes or just cones or cylinders?
 		 */
 
-		static void Main(string[] args)
+        /* Ideas:
+		 * have it choose n points equidistant from one another in 3-space, put stuff there of the same or
+		 * different or a handful of sizes
+		 * have it place stuff so that it knows where the last one was, and make the size a function
+		 * of the distance from the last one and its size...
+		 * have it change orientation of stuff, because that makes things more interesting - come up with
+		 * smart ways for it to do this
+		 * it should maintain some kind of knowledge of what it made - how many primitives are there, what are
+		 * they, what sizes are they, what's their translation (location), what rotation do they have
+		 * pick a size or size range and make a bunch of things those sizes
+		 * pick an interesting x, y, or z point and put a bunch of stuff there, ranging in the other two
+		 * maybe use a mathematical equation to produce sizes or positions...
+		 */
+
+        static void Main(string[] args)
 		{
 			_rand = new Random();
             //int numBodies =  5 + _rand.Next(45);
@@ -116,76 +130,58 @@ namespace Leonardo
 
             //Union u = DoItWithSubdivision();
 
+<<<<<<< HEAD
+            //RotateExtrude re = new RotateExtrude(new double[] { 1.0, -1.0, 2, 1, 2, 2.0, 1, 1, 3, -5, 1, 8, 9, 2, 0, 0, 2, -3, 5, -5, 1, 2, 3, 8, 9, 9, 10, 11, 12, 13, 11, 7, 7, 15, 3, 1, 3, 1 });
+            RotateExtrude re2 = new RotateExtrude(new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(3, 4), new Vector2(3, 1), new Vector2(0, 0) }, 1, Alignment.x);
+
+            CsgObject theThing = SingleComposition();
+            
+			OpenSCadOutput.Save(re2, "output.scad");
+		}
+
+        private static CsgObject StringEmUp()
+        {
+            return null;
+=======
             //CsgObject theThing = StringEmUp();
 
-            for (int i = 0; i < 100; i++)
-            {
-                //Console.Out.WriteLine(i);
-                try
-                {
+			for (int i = 0; i < 100; i++)
+			{
+				CsgObject theThing = null;
+				double moreThanOne = _rand.NextDouble();
+				if(moreThanOne >= 0.5)
+				{
+					Union u = new Union();
+					int howMany = _rand.Next(5);
+					for (int j = 0; j < howMany; j++)
+					{
+						double addOrRemove = _rand.NextDouble();
+						if (addOrRemove >= 0.66)
+						{
+							u.Add(GimmeAComposition());
+						}
+						else
+						{
+							Difference d = new Difference(theThing, GimmeAComposition());
+							u = new Union();
+							u.Add(d);
+						}
+					}
+				}
+				else
+				{
+					theThing = GimmeAComposition();
+				}
 
-                    CsgObject theThing = null;
-                    double moreThanOne = _rand.NextDouble();
-                    if (moreThanOne >= 0)
-                    {
-                        Union u = new Union();
-                        int howMany = _rand.Next(5);
-                        List<CsgObject> unions = new List<CsgObject>();
-                        List<CsgObject> differences = new List<CsgObject>();
-                        for (int j = 0; j < howMany; j++)
-                        {
-                            double addOrRemove = _rand.NextDouble();
-                            if (addOrRemove <= 0.75 || j == 0)
-                            {
-                                var addMe = GimmeAComposition();
-                                unions.Add(addMe);
-                            }
-                            else
-                            {
-                                var diffMe = GimmeAComposition();
-                                differences.Add(diffMe);
-                            }
-                        }
-                        foreach (var thing in unions)
-                        {
-                            u.Add(thing);
-                        }
-                        theThing = u;
-                        if (differences.Count > 0)
-                        {
-                            Difference d = new Difference(theThing, differences[0]);
-                            for (int j = 1; j < differences.Count; j++)
-                            {
-                                d.AddToSubtractList(differences[j]);
-                            }
-                            theThing = d;
-                        }
-                    }
-                    else
-                    {
-                        theThing = GimmeAComposition();
-                    }
+				DateTime now = DateTime.Now;
+				OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
+			}
 
-                    DateTime now = DateTime.Now;
-                    if (theThing == null)
-                    {
-                        theThing = GimmeAComposition();
-                    }
-                    //Console.Out.WriteLine("Writing file {0}", i);
-                    OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
-                }
-                catch (Exception e)
-                {
-                    //DON'T CARE!!! HAHAHA
-                    Console.Out.WriteLine("EXCEPTION: {0}", e.Message);
-                }
-            }
+			//NGonExtrusion what = new NGonExtrusion(20, 13, 15);
+            
+		}
 
-            //NGonExtrusion what = new NGonExtrusion(20, 13, 15);
-
-        }
-
-        private static CsgObject StickTheseTogether(CsgObject a, CsgObject b)
+		private static CsgObject StickTheseTogether(CsgObject a, CsgObject b)
 		{
 			Union u = new Union();
 			u.Add(a);
@@ -250,6 +246,7 @@ namespace Leonardo
             }
             return u;
 
+>>>>>>> master
         }
 
         private static CsgObject SingleComposition()
@@ -259,7 +256,7 @@ namespace Leonardo
             CsgObject returnMe = null;
 			Union u = new Union();
 
-			CsgObject box = new Box(new Vector3(150, 150, 150));
+			AwesomeSolid solid = null;
 
 			int whichOne = _rand.Next(2);
             List<CsgObject> unions = new List<CsgObject>();
@@ -271,59 +268,38 @@ namespace Leonardo
 
 			//foreach (Vector3 corner in )
 			//{
-			//int which = _rand.Next(2);
-			//switch (which)
-			//{
-			//	case 0:
-			//		solid = new Box(new Vector3(150, 150, 150));
-			//		break;
-			//	case 1:
-			//		solid = new Sphere(150);
-			//		break;
-			//	default:
-			//		solid = new Box(new Vector3(150, 150, 150));
-			//		break;
+			int which = _rand.Next(2);
+			switch (which)
+			{
+				case 0:
+					solid = new AwesomeBox(150, 150, 150);
+					break;
+				case 1:
+					solid = new AwesomeSphere(150);
+					break;
+				default:
+					solid = new AwesomeBox(150, 150, 150);
+					break;
+			}
 			//}
-			//}
 
-			u.Add(box as CsgObject);
+			u.Add(solid as CsgObject);
 
-			double averageSize = (box.XSize + box.YSize + box.ZSize) / 3.0;
+			double averageSize = solid.Size.Length;
 
-            List<Vector3> boxVertexes = new List<Vector3>();
-
-            Vector3 boxCenter = box.GetCenter();
-            double halfX = box.XSize / 2;
-            double halfY = box.YSize / 2;
-            double halfZ = box.ZSize / 2;
-
-            for (int i = 0; i < 2; i++)
-            {
-                double x = -1 * halfX + i * box.XSize;
-                for (int j = 0; j < 2; j++)
-                {
-                    double y = -1 * halfY + j * box.YSize;
-                    for (int k = 0; k < 2; k++)
-                    {
-                        double z = -1 * halfZ + k * box.ZSize;
-                        Vector3 newVertex = new Vector3(x, y, z);
-                        boxVertexes.Add(newVertex);
-                    }
-                }
-            }
-
-			foreach (Vector3 attachPoint in boxVertexes)
+			foreach (Vector3 attachPoint in solid.AttachPoints)
 			{
 				CsgObject joinThis = null;
 				double doWhat = _rand.NextDouble();
 				if(doWhat < 0.33)
 				{
-					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.25, averageSize * 0.75), attachPoint);                    
+					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.1, averageSize * 1.25), attachPoint);
+                    
                     differences.Add(joinThis);
 				}
-				else if(doWhat < 0.85)
+				else if(doWhat < 0.7)
 				{
-					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.25, averageSize * 0.75), attachPoint);
+					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.1, averageSize * 1.25), attachPoint);
                     unions.Add(joinThis);
 				}
 				else
@@ -688,6 +664,9 @@ namespace Leonardo
 			return returnThis;
 		}
 
+<<<<<<< HEAD
+	}
+=======
         private static Vector3 GimmeADirection()
         {
             Vector3 direction = new Vector3(GimmeABoundedDouble(0, 1) - 0.5, GimmeABoundedDouble(0, 1) - 0.5, GimmeABoundedDouble(0, 1) - 0.5);
@@ -722,6 +701,7 @@ namespace Leonardo
 		 */
 
     }
+>>>>>>> master
 
 	public enum Axes
 	{
