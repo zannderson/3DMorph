@@ -34,5 +34,10 @@ namespace Leonardo
 		{
 
 		}
+
+		public AwesomeSolid(Vector3 size, string name = "", bool createCentered = true) : base(name)
+		{
+
+		}
 	}
 }

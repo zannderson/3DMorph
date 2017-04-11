@@ -238,28 +238,28 @@ namespace Leonardo
 			//do differences. Maybe later we should do it in whatever order they happen in, or at least
 			//consider it...
 
-			foreach (Vector3 corner in )
+			//foreach (Vector3 corner in )
+			//{
+			int which = _rand.Next(2);
+			switch (which)
 			{
-				int which = _rand.Next(2);
-				switch (which)
-				{
-					case 0:
-						solid = new AwesomeBox(150, 150, 150);
-						break;
-					case 1:
-						solid = new AwesomeSphere(150);
-						break;
-					default:
-						solid = new AwesomeBox(150, 150, 150);
-						break;
-				}
+				case 0:
+					solid = new AwesomeBox(150, 150, 150);
+					break;
+				case 1:
+					solid = new AwesomeSphere(150);
+					break;
+				default:
+					solid = new AwesomeBox(150, 150, 150);
+					break;
 			}
+			//}
 
 			u.Add(solid as CsgObject);
 
-			double averageSize = solid.GetAverageSize();
+			double averageSize = solid.Size.Length;
 
-			foreach (Vector3 attachPoint in solid.GetAttachPoints())
+			foreach (Vector3 attachPoint in solid.AttachPoints)
 			{
 				CsgObject joinThis = null;
 				double doWhat = _rand.NextDouble();
@@ -611,7 +611,7 @@ namespace Leonardo
 		private static CsgObject GimmeAComposition(double size)
 		{
 			CsgObject returnThis = GimmeAPrimitive();
-			int whichOne = _rand.Next(3);
+			int whichOne = _rand.Next(5);
 			switch (whichOne)
 			{
 				case 0:
@@ -622,6 +622,12 @@ namespace Leonardo
 					break;
 				case 2:
 					returnThis = GimmeAPrimitive();
+					break;
+				case 3:
+					returnThis = MakeRandomSpheres();
+					break;
+				case 4:
+					returnThis = StringEmUpCrazy();
 					break;
 				default:
 					returnThis = GimmeAPrimitive();

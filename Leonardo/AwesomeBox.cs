@@ -5,17 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MatterHackers.Csg;
 
 namespace Leonardo
 {
     public class AwesomeBox : AwesomeSolid
     {
         public AwesomeBox(Vector3 size, string name = "", bool createCentered = true) : base(size, name, createCentered)
-        {
-            Translation = new Vector3(0.0, 0.0, 0.0);
-        }
-
-        public AwesomeBox(double sizeX, double sizeY, double sizeZ, string name = "", bool createCentered = true) : base(sizeX, sizeY, sizeZ, name, createCentered)
         {
             Translation = new Vector3(0.0, 0.0, 0.0);
         }
@@ -73,7 +69,12 @@ namespace Leonardo
 			return XSize + YSize + ZSize / 3.0;
 		}
 
-        private Vector3 _translation;
+		public override AxisAlignedBoundingBox GetAxisAlignedBoundingBox()
+		{
+			throw new NotImplementedException();
+		}
+
+		private Vector3 _translation;
         public Vector3 Translation
         {
             get { return _translation; }
@@ -84,5 +85,29 @@ namespace Leonardo
                 _translation = value;
             }
         }
-    }
+
+		public override List<Vector3> AttachPoints
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		public override double AverageSize
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		public override CsgObject InnerObject
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+	}
 }
