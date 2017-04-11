@@ -116,11 +116,27 @@ namespace Leonardo
 
             //Union u = DoItWithSubdivision();
 
-            CsgObject theThing = StringEmUp();
+            //CsgObject theThing = StringEmUp();
+
+			for (int i = 0; i < 100; i++)
+			{
+				CsgObject theThing = null;
+				double moreThanOne = _rand.NextDouble();
+				if(moreThanOne >= 0.5)
+				{
+
+				}
+				else
+				{
+					
+				}
+
+				DateTime now = DateTime.Now;
+				OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("o")));
+			}
 
 			//NGonExtrusion what = new NGonExtrusion(20, 13, 15);
             
-			OpenSCadOutput.Save(theThing, "output.scad");
 		}
 
 		private static CsgObject StringEmUp()
@@ -275,12 +291,12 @@ namespace Leonardo
 			return u;
 		}
 
-		private static double GetADouble()
+		private static double GimmeADouble()
 		{
 			return 2.0 + _rand.NextDouble() * 8.0;
 		}
 
-		private static double GetASize()
+		private static double GimmeASize()
 		{
 			return 5.0 + _rand.NextDouble() * 25.0;
 		}
@@ -365,7 +381,30 @@ namespace Leonardo
 
 		private static CsgObject GimmeAPrimitive()
 		{
-			return GimmeAPrimitive(GetASize());
+			return GimmeAPrimitive(GimmeASize());
+		}
+
+		private static CsgObject GimmeAComposition()
+		{
+			return GimmeAComposition(GimmeASize());
+		}
+
+		private static CsgObject GimmeAComposition(double size)
+		{
+			CsgObject returnThis = null;
+			int whichOne = _rand.Next(3);
+			switch (whichOne)
+			{
+				case 0:
+					returnThis = StringEmUp();
+					break;
+				case 1:
+					break;
+				case 2:
+					break;
+				default:
+					break;
+			}
 		}
 
 		/* Ideas:
