@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Leonardo
 {
-    public class AwesomeBox : Box, IAwesomeSolid
+    public class AwesomeBox : AwesomeSolid
     {
         public AwesomeBox(Vector3 size, string name = "", bool createCentered = true) : base(size, name, createCentered)
         {

@@ -124,19 +124,48 @@ namespace Leonardo
 				double moreThanOne = _rand.NextDouble();
 				if(moreThanOne >= 0.5)
 				{
-
+					Union u = new Union();
+					int howMany = _rand.Next(5);
+					for (int j = 0; j < howMany; j++)
+					{
+						double addOrRemove = _rand.NextDouble();
+						if (addOrRemove >= 0.66)
+						{
+							u.Add(GimmeAComposition());
+						}
+						else
+						{
+							Difference d = new Difference(theThing, GimmeAComposition());
+							u = new Union();
+							u.Add(d);
+						}
+					}
 				}
 				else
 				{
-					
+					theThing = GimmeAComposition();
 				}
 
 				DateTime now = DateTime.Now;
-				OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("o")));
+				OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
 			}
 
 			//NGonExtrusion what = new NGonExtrusion(20, 13, 15);
             
+		}
+
+		private static CsgObject StickTheseTogether(CsgObject a, CsgObject b)
+		{
+			Union u = new Union();
+			u.Add(a);
+			u.Add(b);
+			return u;
+		}
+
+		private static CsgObject TakeThisOuttaThat(CsgObject that, CsgObject thisUn)
+		{
+			Difference d = new Difference(that, thisUn);
+			return d;
 		}
 
 		private static CsgObject StringEmUp()
@@ -177,29 +206,33 @@ namespace Leonardo
             CsgObject returnMe = null;
 			Union u = new Union();
 
-			IAwesomeSolid solid = null;
+			AwesomeSolid solid = null;
 
 			int whichOne = _rand.Next(2);
             List<CsgObject> unions = new List<CsgObject>();
             List<CsgObject> differences = new List<CsgObject>();
 
-            //TODO: Order prolly matters here? Maybe? So right now we're gonna build lists, do unions, then
-            //do differences. Maybe later we should do it in whatever order they happen in, or at least
-            //consider it...
+			//TODO: Order prolly matters here? Maybe? So right now we're gonna build lists, do unions, then
+			//do differences. Maybe later we should do it in whatever order they happen in, or at least
+			//consider it...
 
-			//foreach (Vector3 corner in b.Corners)
-			//{
-			//	case 0:
-			//		solid = new AwesomeBox(150, 150, 150);
-			//		break;
-			//	case 1:
-			//		solid = new AwesomeSphere(150);
-			//		break;
-			//	default:
-			//		solid = new AwesomeBox(150, 150, 150);
-			//		break;
-			//}
-			
+			foreach (Vector3 corner in )
+			{
+				int which = _rand.Next(2);
+				switch (which)
+				{
+					case 0:
+						solid = new AwesomeBox(150, 150, 150);
+						break;
+					case 1:
+						solid = new AwesomeSphere(150);
+						break;
+					default:
+						solid = new AwesomeBox(150, 150, 150);
+						break;
+				}
+			}
+
 			u.Add(solid as CsgObject);
 
 			double averageSize = solid.GetAverageSize();
@@ -245,24 +278,24 @@ namespace Leonardo
             return returnMe;
         }
 
-        private static CsgObject MakeRandomSpheres()
-        {
-            int makeThisMany = _rand.Next(20);
-            Union u = new Union();
-            List<Sphere> spheres = new List<Sphere>();
-            for (int i = 0; i < makeThisMany; i++)
-            {
-                if(spheres.Count > 0)
-                {
-                    int whichToAttachTo = _rand.Next(spheres.Count);
-                    Sphere attachToMe = spheres[whichToAttachTo];
-                }
-                else
-                {
-                    Sphere s = new Sphere(GimmeABoundedDouble(_smallest, _largest));
-                }
-            }
-        }
+        //private static CsgObject MakeRandomSpheres()
+        //{
+        //    int makeThisMany = _rand.Next(20);
+        //    Union u = new Union();
+        //    List<Sphere> spheres = new List<Sphere>();
+        //    for (int i = 0; i < makeThisMany; i++)
+        //    {
+        //        if(spheres.Count > 0)
+        //        {
+        //            int whichToAttachTo = _rand.Next(spheres.Count);
+        //            Sphere attachToMe = spheres[whichToAttachTo];
+        //        }
+        //        else
+        //        {
+        //            Sphere s = new Sphere(GimmeABoundedDouble(_smallest, _largest));
+        //        }
+        //    }
+        //}
 
 		private static Union DoItWithSubdivision()
 		{
@@ -415,7 +448,7 @@ namespace Leonardo
 
 		private static CsgObject GimmeAComposition(double size)
 		{
-			CsgObject returnThis = null;
+			CsgObject returnThis = GimmeAPrimitive();
 			int whichOne = _rand.Next(3);
 			switch (whichOne)
 			{
@@ -423,12 +456,16 @@ namespace Leonardo
 					returnThis = StringEmUp();
 					break;
 				case 1:
+					returnThis = SingleComposition();
 					break;
 				case 2:
+					returnThis = GimmeAPrimitive();
 					break;
 				default:
+					returnThis = GimmeAPrimitive();
 					break;
 			}
+			return returnThis;
 		}
 
 		/* Ideas:
