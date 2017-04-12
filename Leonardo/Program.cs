@@ -23,7 +23,9 @@ namespace Leonardo
 		private const double _smallest = 5.0;
 		private const double _largest = 200.0;
 
-		/* So, a general way of doing things:
+        private static double _startTime;
+
+        /* So, a general way of doing things:
 		 * -Choose some way of how to pick primitives
 		 * -Choose some way of how to pick how many
 		 * -Choose some way of how to pick sizes
@@ -64,13 +66,13 @@ namespace Leonardo
          * How do we incorporate some of the 
          */
 
-		/*
+        /*
 		 * Pick a point (random, something on an existing shape, something from a group of points)
 		 * Do a thing there (random, all the same thing with random parameters, 
 		 * Repeat
 		 */
 
-		/*
+        /*
 		 * Pi day chat with Dan:
 		 * -Maybe just do all spheres
 		 * -They'd look good
@@ -95,9 +97,13 @@ namespace Leonardo
 		 * Possibly instead of just spheres, maybe try doing just cubes or just cones or cylinders?
 		 */
 
-		static void Main(string[] args)
+
+        #region Main and Related
+
+        static void Main(string[] args)
 		{
 			_rand = new Random();
+            _startTime = DateTime.Now.Ticks;
             //int numBodies =  5 + _rand.Next(45);
 
             //Union u = new Union();
@@ -118,7 +124,23 @@ namespace Leonardo
 
             //CsgObject theThing = StringEmUp();
 
-            for (int i = 0; i < 100; i++)
+            //NGonExtrusion what = new NGonExtrusion(20, 13, 15);
+
+            //DoASingleOne(CutUpASphereHybrid);
+            //DoABunchSpheresOnly(100);
+            DoABunchOneMethod(100, StringEmUpCrazy);
+        }
+
+        private static void DoASingleOne(Func<CsgObject> thisOne)
+        {
+            CsgObject thing = thisOne();
+
+            OpenSCadOutput.Save(thing, "output.scad");
+        }
+
+        private static void DoABunch(int howMany)
+        {
+            for (int i = 0; i < howMany; i++)
             {
                 //Console.Out.WriteLine(i);
                 try
@@ -129,10 +151,10 @@ namespace Leonardo
                     if (moreThanOne >= 0)
                     {
                         Union u = new Union();
-                        int howMany = _rand.Next(5);
+                        int howManyMethods = _rand.Next(5);
                         List<CsgObject> unions = new List<CsgObject>();
                         List<CsgObject> differences = new List<CsgObject>();
-                        for (int j = 0; j < howMany; j++)
+                        for (int j = 0; j < howManyMethods; j++)
                         {
                             double addOrRemove = _rand.NextDouble();
                             if (addOrRemove <= 0.75 || j == 0)
@@ -180,28 +202,147 @@ namespace Leonardo
                     Console.Out.WriteLine("EXCEPTION: {0}", e.Message);
                 }
             }
-
-            //NGonExtrusion what = new NGonExtrusion(20, 13, 15);
-
         }
 
-        private static CsgObject StickTheseTogether(CsgObject a, CsgObject b)
-		{
-			Union u = new Union();
-			u.Add(a);
-			u.Add(b);
-			return u;
-		}
+        private static void DoABunchSpheresOnly(int howMany)
+        {
+            for (int i = 0; i < howMany; i++)
+            {
+                //Console.Out.WriteLine(i);
+                try
+                {
 
-		private static CsgObject TakeThisOuttaThat(CsgObject that, CsgObject thisUn)
-		{
-			Difference d = new Difference(that, thisUn);
-			return d;
-		}
+                    CsgObject theThing = null;
+                    double moreThanOne = _rand.NextDouble();
+                    if (moreThanOne >= 0)
+                    {
+                        Union u = new Union();
+                        int howManyMethods = _rand.Next(5);
+                        List<CsgObject> unions = new List<CsgObject>();
+                        List<CsgObject> differences = new List<CsgObject>();
+                        for (int j = 0; j < howManyMethods; j++)
+                        {
+                            double addOrRemove = _rand.NextDouble();
+                            if (addOrRemove <= 0.75 || j == 0)
+                            {
+                                var addMe = GimmeACompositionSpheresOnly();
+                                unions.Add(addMe);
+                            }
+                            else
+                            {
+                                var diffMe = GimmeACompositionSpheresOnly();
+                                differences.Add(diffMe);
+                            }
+                        }
+                        foreach (var thing in unions)
+                        {
+                            u.Add(thing);
+                        }
+                        theThing = u;
+                        if (differences.Count > 0)
+                        {
+                            Difference d = new Difference(theThing, differences[0]);
+                            for (int j = 1; j < differences.Count; j++)
+                            {
+                                d.AddToSubtractList(differences[j]);
+                            }
+                            theThing = d;
+                        }
+                    }
+                    else
+                    {
+                        theThing = GimmeACompositionSpheresOnly();
+                    }
 
-		private static CsgObject StringEmUp()
-		{
-			/*
+                    DateTime now = DateTime.Now;
+                    if (theThing == null)
+                    {
+                        theThing = GimmeACompositionSpheresOnly();
+                    }
+                    //Console.Out.WriteLine("Writing file {0}", i);
+                    OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
+                }
+                catch (Exception e)
+                {
+                    //DON'T CARE!!! HAHAHA
+                    Console.Out.WriteLine("EXCEPTION: {0}", e.Message);
+                }
+            }
+        }
+
+        private static void DoABunchOneMethod(int howMany, Func<CsgObject> method)
+        {
+            for (int i = 0; i < howMany; i++)
+            {
+                //Console.Out.WriteLine(i);
+                try
+                {
+
+                    CsgObject theThing = null;
+                    double moreThanOne = _rand.NextDouble();
+                    if (moreThanOne >= 0)
+                    {
+                        Union u = new Union();
+                        int howManyMethods = _rand.Next(5);
+                        List<CsgObject> unions = new List<CsgObject>();
+                        List<CsgObject> differences = new List<CsgObject>();
+                        for (int j = 0; j < howManyMethods; j++)
+                        {
+                            double addOrRemove = _rand.NextDouble();
+                            if (addOrRemove <= 0.75 || j == 0)
+                            {
+                                var addMe = method();
+                                unions.Add(addMe);
+                            }
+                            else
+                            {
+                                var diffMe = method();
+                                differences.Add(diffMe);
+                            }
+                        }
+                        foreach (var thing in unions)
+                        {
+                            u.Add(thing);
+                        }
+                        theThing = u;
+                        if (differences.Count > 0)
+                        {
+                            Difference d = new Difference(theThing, differences[0]);
+                            for (int j = 1; j < differences.Count; j++)
+                            {
+                                d.AddToSubtractList(differences[j]);
+                            }
+                            theThing = d;
+                        }
+                    }
+                    else
+                    {
+                        theThing = method();
+                    }
+
+                    DateTime now = DateTime.Now;
+                    if (theThing == null)
+                    {
+                        theThing = method();
+                    }
+                    //Console.Out.WriteLine("Writing file {0}", i);
+                    OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
+                }
+                catch (Exception e)
+                {
+                    //DON'T CARE!!! HAHAHA
+                    Console.Out.WriteLine("EXCEPTION: {0}", e.Message);
+                }
+            }
+        }
+
+        #endregion Main and Related
+
+        #region Generation Methods
+
+        private static CsgObject StringEmUp()
+        {
+            /*
 			 * Pick a primitive type (or a pattern or random)
 			 * Pick a start and end size (or go up and down...)
 			 * Pick a distance?
@@ -209,39 +350,41 @@ namespace Leonardo
 			 * Go for it
 			 */
 
-			Union u = new Union();
+            Union u = new Union();
 
-			double start = GimmeABoundedDouble(_smallest, _largest);
-			double end = GimmeABoundedDouble(_smallest, _largest);
+            double start = GimmeABoundedDouble(5, 50);
+            double end = GimmeABoundedDouble(60, 200);
 
-			int howMany = _rand.Next(5, 20);
+            int howMany = _rand.Next(5, 20);
 
-			double sizeIncrement = (start - end) / (double)howMany;
+            double sizeIncrement = (start - end) / (double)howMany;
 
-			double z = 0;
-			for (int i = 0; i < howMany; i++)
-			{
-				double radius = start + sizeIncrement * i;
-				Sphere awe = new Sphere(start + sizeIncrement * i);
-				Translate t = new Translate(awe as CsgObject, new Vector3(0, 0, z));
-				u.Add(t);
-				z += radius;
-			}
-			return u;
+            double z = 0;
+            List<double> radii = GimmeSomeBoundedDoubles(start, end, howMany);
+            for (int i = 0; i < howMany; i++)
+            {
+                double radius = radii[i] * (end - start);
+                Sphere awe = new Sphere(radius);
+                Translate t = new Translate(awe as CsgObject, new Vector3(0, 0, z));
+                u.Add(t);
+                z += radius;
+            }
+            return u;
         }
 
         private static CsgObject StringEmUpCrazy()
         {
-            Union u = new Union();            
+            Union u = new Union();
             int howMany = _rand.Next(5, 20);
             double radius = GimmeABoundedDouble(_smallest, _largest);
             Vector3 center = Vector3.Zero;
+            List<double> radii = GimmeSomeBoundedDoubles(0, 100, howMany);
             for (int i = 0; i < howMany; i++)
             {
                 Vector3 direction = GimmeADirection();
                 Vector3 translation = center + direction * radius;
                 center = center + direction * radius;
-                double percentChange = GimmeABoundedDouble(0, 0.25);
+                double percentChange = GimmeABoundedDouble(0, 2) * radii[i];
                 double biggerOrSmaller = GimmeABoundedDouble(0, 1);
                 radius = biggerOrSmaller >= 0.5 ? radius + radius * percentChange : radius - radius * percentChange;
                 Sphere awe = new Sphere(radius);
@@ -252,43 +395,53 @@ namespace Leonardo
 
         }
 
+        private static CsgObject VaryOnlyXYorZ()
+        {
+
+        }
+
+        private static CsgObject AtomDiagram()
+        {
+
+        }
+
         private static CsgObject SingleComposition()
         {
             //TODO: make some bounds on how crazy or tame this goes with relative sizes...IE does the main thing
             //get more or less emphasis?
             CsgObject returnMe = null;
-			Union u = new Union();
+            Union u = new Union();
 
-			CsgObject box = new Box(new Vector3(150, 150, 150));
+            CsgObject box = new Box(new Vector3(150, 150, 150));
 
-			int whichOne = _rand.Next(2);
+            int whichOne = _rand.Next(2);
             List<CsgObject> unions = new List<CsgObject>();
             List<CsgObject> differences = new List<CsgObject>();
 
-			//TODO: Order prolly matters here? Maybe? So right now we're gonna build lists, do unions, then
-			//do differences. Maybe later we should do it in whatever order they happen in, or at least
-			//consider it...
+            //TODO: Order prolly matters here? Maybe? So right now we're gonna build lists, do unions, then
+            //do differences. Maybe later we should do it in whatever order they happen in, or at least
+            //consider it...
 
-			//foreach (Vector3 corner in )
-			//{
-			//int which = _rand.Next(2);
-			//switch (which)
-			//{
-			//	case 0:
-			//		solid = new Box(new Vector3(150, 150, 150));
-			//		break;
-			//	case 1:
-			//		solid = new Sphere(150);
-			//		break;
-			//	default:
-			//		solid = new Box(new Vector3(150, 150, 150));
-			//		break;
-			//}
-			//}
+            //foreach (Vector3 corner in )
+            //{
+            //int which = _rand.Next(2);
+            //switch (which)
+            //{
+            //	case 0:
+            //		solid = new Box(new Vector3(150, 150, 150));
+            //		break;
+            //	case 1:
+            //		solid = new Sphere(150);
+            //		break;
+            //	default:
+            //		solid = new Box(new Vector3(150, 150, 150));
+            //		break;
+            //}
+            //}
 
-			u.Add(box as CsgObject);
+            u.Add(box as CsgObject);
 
-			double averageSize = (box.XSize + box.YSize + box.ZSize) / 3.0;
+            double averageSize = (box.XSize + box.YSize + box.ZSize) / 3.0;
 
             List<Vector3> boxVertexes = new List<Vector3>();
 
@@ -312,32 +465,32 @@ namespace Leonardo
                 }
             }
 
-			foreach (Vector3 attachPoint in boxVertexes)
-			{
-				CsgObject joinThis = null;
-				double doWhat = _rand.NextDouble();
-				if(doWhat < 0.33)
-				{
-					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.25, averageSize * 0.75), attachPoint);                    
+            foreach (Vector3 attachPoint in boxVertexes)
+            {
+                CsgObject joinThis = null;
+                double doWhat = _rand.NextDouble();
+                if (doWhat < 0.33)
+                {
+                    joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.25, averageSize * 0.75), attachPoint);
                     differences.Add(joinThis);
-				}
-				else if(doWhat < 0.85)
-				{
-					joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.25, averageSize * 0.75), attachPoint);
+                }
+                else if (doWhat < 0.85)
+                {
+                    joinThis = GimmeAPrimitive(GimmeABoundedDouble(averageSize * 0.25, averageSize * 0.75), attachPoint);
                     unions.Add(joinThis);
-				}
-				else
-				{
-					joinThis = null;
-				}
-			}
+                }
+                else
+                {
+                    joinThis = null;
+                }
+            }
 
             foreach (var thing in unions)
             {
                 u.Add(thing);
                 returnMe = u;
             }
-            if(differences.Count > 0)
+            if (differences.Count > 0)
             {
                 Difference d = new Difference(returnMe, differences[0]);
                 for (int i = 1; i < differences.Count; i++)
@@ -363,7 +516,7 @@ namespace Leonardo
                 Sphere newS = null;
                 Sphere attachToMe = null;
                 int whichToAttachTo = -1;
-                if(i > 0)
+                if (i > 0)
                 {
                     whichToAttachTo = _rand.Next(i);
                     attachToMe = spheres[whichToAttachTo];
@@ -371,7 +524,7 @@ namespace Leonardo
                 newS = new Sphere(GimmeABoundedDouble(_smallest, _largest));
                 Translate t = null;
                 Vector3 translation = Vector3.NegativeInfinity;
-                if(attachToMe != null)
+                if (attachToMe != null)
                 {
                     double aRadius = attachToMe.Radius;
                     double bRadius = newS.Radius;
@@ -451,7 +604,7 @@ namespace Leonardo
                 Vector3 orthogonalOne = CrossProduct(direction, new Vector3(direction.z, direction.x, direction.y));
                 Vector3 orthogonalTwo = CrossProduct(direction, orthogonalOne);
 
-                if(doOpposite >= 0.25)
+                if (doOpposite >= 0.25)
                 {
                     double diff = GimmeABoundedDouble(0, 1);
                     Sphere opposite = new Sphere(radius);
@@ -467,7 +620,7 @@ namespace Leonardo
                         u.Add(to);
                     }
                 }
-                if(doOneAxis >= 0.66)
+                if (doOneAxis >= 0.66)
                 {
                     double diff = GimmeABoundedDouble(0, 1);
                     Sphere oneOne = new Sphere(radius);
@@ -511,92 +664,177 @@ namespace Leonardo
             return u;
         }
 
-		private static Union DoItWithSubdivision()
-		{
-			//int howManyAxes = _rand.Next(3);
-			Union u = new Union();
+        private static Union DoItWithSubdivision()
+        {
+            //int howManyAxes = _rand.Next(3);
+            Union u = new Union();
 
-			Array axes = Enum.GetValues(typeof(Axes));
-			Axes whichOne = (Axes)axes.GetValue(_rand.Next(axes.Length));
-            
-			double[][] axisValues = new double[3][];
-			axisValues[0] = GimmeRandomDoubles(_rand.Next(15), _xMax);
-			axisValues[1] = GimmeRandomDoubles(_rand.Next(15), _yMax);
-			axisValues[2] = GimmeRandomDoubles(_rand.Next(15), _zMax);
-			switch (whichOne)
-			{
-				case Axes.X:
-					int xPoints = _rand.Next(50);
-					axisValues[0] = Subdivide(_xMax, xPoints);
-					break;
-				case Axes.Y:
-					int yPoints = _rand.Next(50);
-					axisValues[1] = Subdivide(_yMax, yPoints);
-					break;
-				case Axes.Z:
-					int zPoints = _rand.Next(50);
-					axisValues[2] = Subdivide(_yMax, zPoints);
-					break;
-				default:
-					break;
-			}
-			for (int i = 0; i < axisValues[0].Length; i++)
-			{
-				for (int j = 0; j < axisValues[1].Length; j++)
-				{
-					for (int k = 0; k < axisValues[2].Length; k++)
-					{
-						CsgObject newPrimitive = GimmeAPrimitive();
-						Vector3 translate = new Vector3(axisValues[0][i], axisValues[1][j], axisValues[2][k]);
-						newPrimitive = new SetCenter(newPrimitive, translate);
-						u = new Union(u, newPrimitive);
-					}
-				}
-			}
+            Array axes = Enum.GetValues(typeof(Axes));
+            Axes whichOne = (Axes)axes.GetValue(_rand.Next(axes.Length));
 
-			return u;
-		}
+            double[][] axisValues = new double[3][];
+            axisValues[0] = GimmeRandomDoubles(_rand.Next(15), _xMax);
+            axisValues[1] = GimmeRandomDoubles(_rand.Next(15), _yMax);
+            axisValues[2] = GimmeRandomDoubles(_rand.Next(15), _zMax);
+            switch (whichOne)
+            {
+                case Axes.X:
+                    int xPoints = _rand.Next(50);
+                    axisValues[0] = Subdivide(_xMax, xPoints);
+                    break;
+                case Axes.Y:
+                    int yPoints = _rand.Next(50);
+                    axisValues[1] = Subdivide(_yMax, yPoints);
+                    break;
+                case Axes.Z:
+                    int zPoints = _rand.Next(50);
+                    axisValues[2] = Subdivide(_yMax, zPoints);
+                    break;
+                default:
+                    break;
+            }
+            for (int i = 0; i < axisValues[0].Length; i++)
+            {
+                for (int j = 0; j < axisValues[1].Length; j++)
+                {
+                    for (int k = 0; k < axisValues[2].Length; k++)
+                    {
+                        CsgObject newPrimitive = GimmeAPrimitive();
+                        Vector3 translate = new Vector3(axisValues[0][i], axisValues[1][j], axisValues[2][k]);
+                        newPrimitive = new SetCenter(newPrimitive, translate);
+                        u = new Union(u, newPrimitive);
+                    }
+                }
+            }
 
-		private static double GimmeADouble()
-		{
-			return 2.0 + _rand.NextDouble() * 8.0;
-		}
+            return u;
+        }
 
-		private static double GimmeASize()
-		{
-			return 5.0 + _rand.NextDouble() * 25.0;
-		}
+        private static CsgObject CutUpASphereRegular()
+        {
+            Sphere s = new Sphere(GimmeABoundedDouble(100, 200));
 
-		private static double GetATransform()
-		{
-			return 0 + _rand.NextDouble() * 200.0;
-		}
+            List<Vector3> compassPoints = GimmeSphereCompassPoints(s);
 
-		private static double[] Subdivide(double size, int numPoints)
-		{
-			double[] returnArray = new double[numPoints];
-			double increment = size / numPoints;
-			returnArray[0] = increment / 2;
-			for (int i = 1; i < numPoints; i++)
-			{
-				returnArray[i] = returnArray[i - 1] + increment;
-			}
-			return returnArray;
-		}
+            Difference d = new Difference(s);
+            foreach (var point in compassPoints)
+            {
+                Sphere cutItOut = new Sphere(GimmeABoundedDouble(40, 90));
+                Translate t = new Translate(cutItOut, point);
+                d.AddToSubtractList(t);
+            }
 
-		private static double[] GimmeRandomDoubles(int howMany, double max)
-		{
-			double[] returnArray = new double[howMany];
-			for (int i = 0; i < howMany; i++)
-			{
-				returnArray[i] = _rand.NextDouble() * max;
-			}
-			return returnArray;
-		}
+            return d;
+        }
+
+        private static CsgObject CutUpASphereRandom()
+        {
+            Sphere mainSphere = new Sphere(GimmeABoundedDouble(_smallest, _largest));
+            Difference d = new Difference(mainSphere);
+            int howManyBumps = _rand.Next(20);
+            //size range is 0.25-0.75 of main sphere's radius
+            //double howMuchToUse = GimmeABoundedDouble(0.1, 1);
+            for (int i = 0; i < howManyBumps; i++)
+            {
+                Vector3 direction = GimmeADirection();
+                double radius = GimmeABoundedDouble(0.25, 0.65) * mainSphere.Radius;
+                Sphere bump = new Sphere(radius);
+                Translate t = new Translate(bump, mainSphere.GetCenter() + direction * mainSphere.Radius);
+                d.AddToSubtractList(t);
+            }
+            return d;
+        }
+
+        private static CsgObject CutUpASphereHybrid()
+        {
+            Sphere mainSphere = new Sphere(GimmeABoundedDouble(_smallest, _largest));
+            Difference d = new Difference(mainSphere);
+            int howManyBumps = _rand.Next(5) + 2;
+            for (int i = 0; i < howManyBumps; i++)
+            {
+                Vector3 direction = GimmeADirection();
+                double radius = GimmeABoundedDouble(0.25, 0.75) * mainSphere.Radius;
+                Sphere bump = new Sphere(radius);
+                Translate t = new Translate(bump, mainSphere.GetCenter() + direction * mainSphere.Radius);
+                d.AddToSubtractList(t);
+
+                double doOpposite = GimmeABoundedDouble(0, 1);
+                double doOneAxis = GimmeABoundedDouble(0, 1);
+                double doOtherAxis = GimmeABoundedDouble(0, 1);
+
+                Vector3 orthogonalOne = CrossProduct(direction, new Vector3(direction.z, direction.x, direction.y));
+                Vector3 orthogonalTwo = CrossProduct(direction, orthogonalOne);
+
+                if (doOneAxis >= 0.66)
+                {
+                    double diff = GimmeABoundedDouble(0, 1);
+                    Sphere oneOne = new Sphere(radius);
+                    Sphere oneTwo = new Sphere(radius);
+                    Translate tOne = new Translate(oneOne, mainSphere.GetCenter() + orthogonalOne * mainSphere.Radius);
+                    Translate tTwo = new Translate(oneOne, mainSphere.GetCenter() - orthogonalOne * mainSphere.Radius);
+                    d.AddToSubtractList(tOne);
+                    d.AddToSubtractList(tTwo);
+                }
+                if (doOtherAxis >= 0.66)
+                {
+                    double diff = GimmeABoundedDouble(0, 1);
+                    Sphere oneOne = new Sphere(radius);
+                    Sphere oneTwo = new Sphere(radius);
+                    Translate tOne = new Translate(oneOne, mainSphere.GetCenter() + orthogonalTwo * mainSphere.Radius);
+                    Translate tTwo = new Translate(oneOne, mainSphere.GetCenter() - orthogonalTwo * mainSphere.Radius);
+                    d.AddToSubtractList(tOne);
+                    d.AddToSubtractList(tTwo);
+                }
+            }
+            return d;
+        }
+
+        #endregion Generation Methods
+
+        #region Helper Methods - Values
+
+        private static double GimmeADouble()
+        {
+            //TODO: Make this have different execution paths - random, by some function, etc...
+            return 2.0 + _rand.NextDouble() * 8.0;
+        }
+
+        private static double GimmeASize()
+        {
+            //TODO: Make this have different execution paths - random, by some function, etc...
+            return 5.0 + _rand.NextDouble() * 25.0;
+        }
+
+        private static double GetATransform()
+        {
+            return 0 + _rand.NextDouble() * 200.0;
+        }
+
+        private static double[] Subdivide(double size, int numPoints)
+        {
+            double[] returnArray = new double[numPoints];
+            double increment = size / numPoints;
+            returnArray[0] = increment / 2;
+            for (int i = 1; i < numPoints; i++)
+            {
+                returnArray[i] = returnArray[i - 1] + increment;
+            }
+            return returnArray;
+        }
+
+        private static double[] GimmeRandomDoubles(int howMany, double max)
+        {
+            double[] returnArray = new double[howMany];
+            for (int i = 0; i < howMany; i++)
+            {
+                returnArray[i] = _rand.NextDouble() * max;
+            }
+            return returnArray;
+        }
 
         private static double GimmeABoundedDouble(double min, double max)
-		{
-            if(min >= max)
+        {
+            if (min >= max)
             {
                 throw new Exception("You dummy! Make the max strictly larger than the min.");
             }
@@ -604,10 +842,75 @@ namespace Leonardo
             return _rand.NextDouble() * range + min;
         }
 
+        private static List<double> GimmeSomeBoundedDoubles(double min, double max, int howMany)
+        {
+            if(min >= max)
+            {
+                throw new Exception("Min must be strictly greater than max. You did it wrong.");
+            }
+
+            List<double> doubles = new List<double>();
+            double range = max - min;
+            double increment = range / howMany;
+
+            Func<double, double> whichOne = null;
+            int pickOne = _rand.Next(5);
+            switch (pickOne)
+            {
+                case 0:
+                    whichOne = Math.Sin;
+                    break;
+                case 1:
+                    whichOne = Math.Cos;
+                    break;
+                case 2:
+                    whichOne = Math.Sqrt;
+                    break;
+                case 3:
+                    whichOne = Square;
+                    break;
+                case 4:
+                    whichOne = Cube;
+                    break;
+                default:
+                    break;
+            }
+
+            for (int i = 0; i < howMany; i++)
+            {
+                double input = i * increment;
+                if(pickOne <= 1)
+                {
+                    input = DegreeToRadian(input);
+                }
+                doubles.Add(whichOne(DegreeToRadian(input)));
+            }
+            return doubles;
+        }
+        
         private static double DistanceBetweenPoints(Vector3 a, Vector3 b)
         {
             return Math.Sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
         }
+
+        private static double DegreeToRadian(double angle)
+        {
+            return Math.PI * angle / 180.0;
+        }
+
+        private static double Square(double input)
+        {
+            return input * input;
+        }
+
+        private static double Cube(double input)
+        {
+            return input * input * input;
+        }
+
+        #endregion Helper Methods - Values
+
+        #region Helper Methods - Csg/Vectors
 
         private static CsgObject GimmeAPrimitive(double size, Vector3 center)
         {
@@ -658,9 +961,46 @@ namespace Leonardo
 		private static CsgObject GimmeAComposition()
 		{
 			return GimmeAComposition(GimmeASize());
-		}
+        }
 
-		private static CsgObject GimmeAComposition(double size)
+        private static CsgObject GimmeACompositionSpheresOnly()
+        {
+            CsgObject returnThis = GimmeAPrimitive();
+            int whichOne = _rand.Next(5);
+            switch (whichOne)
+            {
+                case 0:
+                    returnThis = StringEmUp();
+                    break;
+                case 1:
+                    returnThis = CutUpASphereHybrid();
+                    break;
+                case 2:
+                    returnThis = SphereWithSmartSurfaceSpheres();
+                    break;
+                case 3:
+                    returnThis = MakeRandomSpheres();
+                    break;
+                case 4:
+                    returnThis = StringEmUpCrazy();
+                    break;
+                case 5:
+                    returnThis = SphereWithSurfaceSpheres();
+                    break;
+                case 6:
+                    returnThis = CutUpASphereRandom();
+                    break;
+                case 7:
+                    returnThis = CutUpASphereRegular();
+                    break;
+                default:
+                    returnThis = new Sphere(GimmeASize());
+                    break;
+            }
+            return returnThis;
+        }
+
+        private static CsgObject GimmeAComposition(double size)
 		{
 			CsgObject returnThis = GimmeAPrimitive();
 			int whichOne = _rand.Next(5);
@@ -706,6 +1046,25 @@ namespace Leonardo
             rtnvector.Normalize(); //optional
             return rtnvector;
         }
+
+        private static List<Vector3> GimmeSphereCompassPoints(Sphere sphere)
+        {
+            List<Vector3> points = new List<Vector3>();
+
+            Vector3 center = sphere.GetCenter();
+            double radius = sphere.Radius;
+
+            points.Add(new Vector3(center.x + radius, center.y, center.z));
+            points.Add(new Vector3(center.x - radius, center.y, center.z));
+            points.Add(new Vector3(center.x, center.y + radius, center.z));
+            points.Add(new Vector3(center.x, center.y - radius, center.z));
+            points.Add(new Vector3(center.x, center.y, center.z + radius));
+            points.Add(new Vector3(center.x, center.y, center.z - radius));
+
+            return points;
+        }
+
+        #endregion Helper Methods - Csg/Vectors
 
         /* Ideas:
 		 * have it choose n points equidistant from one another in 3-space, put stuff there of the same or
