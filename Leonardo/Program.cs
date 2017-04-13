@@ -127,8 +127,8 @@ namespace Leonardo
             //NGonExtrusion what = new NGonExtrusion(20, 13, 15);
 
             //DoASingleOne(CutUpASphereHybrid);
-            //DoABunchSpheresOnly(100);
-            DoABunchOneMethod(100, VaryOnlyXYorZ);
+            DoABunchSpheresOnly(100);
+            //DoABunchOneMethod(100, VaryOnlyXYorZ);
         }
 
         private static void DoASingleOne(Func<CsgObject> thisOne)
@@ -339,6 +339,11 @@ namespace Leonardo
         #endregion Main and Related
 
         #region Generation Methods
+
+		private static CsgObject SphereWithInnerSpheres()
+		{
+
+		}
 
         private static CsgObject DoSomethingSymmetric()
         {
@@ -880,9 +885,11 @@ namespace Leonardo
                 throw new Exception("Min must be strictly greater than max. You did it wrong.");
             }
 
+			double rangeForGeneration = 100 + _rand.NextDouble() * 9900;
+			double generationIncrement = rangeForGeneration / howMany;
             List<double> doubles = new List<double>();
-            double range = max - min;
-            double increment = range / howMany;
+            double rangeForReturn = max - min;
+			double ratio = rangeForGeneration / rangeForReturn;
 
             Func<double, double> whichOne = null;
             int pickOne = _rand.Next(5);
@@ -909,12 +916,12 @@ namespace Leonardo
 
             for (int i = 0; i < howMany; i++)
             {
-                double input = i * increment;
+                double input = 100 + i * generationIncrement;
                 if(pickOne <= 1)
                 {
                     input = DegreeToRadian(input);
                 }
-                doubles.Add(whichOne(DegreeToRadian(input)));
+                doubles.Add(whichOne(DegreeToRadian(input / ratio)));
             }
             return doubles;
         }
@@ -997,7 +1004,7 @@ namespace Leonardo
         private static CsgObject GimmeACompositionSpheresOnly()
         {
             CsgObject returnThis = GimmeAPrimitive();
-            int whichOne = _rand.Next(5);
+            int whichOne = _rand.Next(10);
             switch (whichOne)
             {
                 case 0:
@@ -1024,6 +1031,12 @@ namespace Leonardo
                 case 7:
                     returnThis = CutUpASphereRegular();
                     break;
+				case 8:
+					returnThis = DoSomethingSymmetric();
+					break;
+				case 9:
+					returnThis = VaryOnlyXYorZ();
+					break;
                 default:
                     returnThis = new Sphere(GimmeASize());
                     break;
