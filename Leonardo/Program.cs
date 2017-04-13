@@ -128,7 +128,7 @@ namespace Leonardo
 
             //DoASingleOne(CutUpASphereHybrid);
             //DoABunchSpheresOnly(100);
-            DoABunchOneMethod(100, StringEmUpCrazy);
+            DoABunchOneMethod(100, VaryOnlyXYorZ);
         }
 
         private static void DoASingleOne(Func<CsgObject> thisOne)
@@ -340,6 +340,15 @@ namespace Leonardo
 
         #region Generation Methods
 
+        private static CsgObject DoSomethingSymmetric()
+        {
+            CsgObject o = GimmeACompositionSpheresOnly();
+            Union u = new Union();
+            u.Add(o);
+            u.Add(o.NewMirrorAccrossX());
+            return u;
+        }
+
         private static CsgObject StringEmUp()
         {
             /*
@@ -395,15 +404,37 @@ namespace Leonardo
 
         }
 
+        //private static CsgObject SphereDecisions()
+        //{
+        //    //I have a sphere. I'll do something to it. Then I'll make another sphere. Maybe I'll come back to this one. Maybe I"ll keep going. I don't know...
+        //}
+
         private static CsgObject VaryOnlyXYorZ()
         {
-
+            Union u = new Union();
+            int howMany = _rand.Next(5, 20);
+            double radius = GimmeABoundedDouble(_smallest, _largest);
+            Vector3 center = Vector3.Zero;
+            List<double> radii = GimmeSomeBoundedDoubles(0, 100, howMany);
+            for (int i = 0; i < howMany; i++)
+            {
+                Vector3 direction = GimmeAnAxisDirection();
+                Vector3 translation = center + direction * radius;
+                center = center + direction * radius;
+                double percentChange = GimmeABoundedDouble(0, 2) * radii[i];
+                double biggerOrSmaller = GimmeABoundedDouble(0, 1);
+                radius = biggerOrSmaller >= 0.5 ? radius + radius * percentChange : radius - radius * percentChange;
+                Sphere awe = new Sphere(radius);
+                Translate t = new Translate(awe, translation);
+                u.Add(t);
+            }
+            return u;
         }
 
-        private static CsgObject AtomDiagram()
-        {
+        //private static CsgObject AtomDiagram()
+        //{
 
-        }
+        //}
 
         private static CsgObject SingleComposition()
         {
@@ -1033,6 +1064,22 @@ namespace Leonardo
             Vector3 direction = new Vector3(GimmeABoundedDouble(0, 1) - 0.5, GimmeABoundedDouble(0, 1) - 0.5, GimmeABoundedDouble(0, 1) - 0.5);
             direction.Normalize();
             return direction;
+        }
+
+        private static Vector3 GimmeAnAxisDirection()
+        {
+            int whichDirection = _rand.Next(3);
+            switch (whichDirection)
+            {
+                case 0:
+                    return new Vector3(1, 0, 0);
+                case 1:
+                    return new Vector3(0, 1, 0);
+                case 2:
+                    return new Vector3(0, 0, 1);
+                default:
+                    return new Vector3(1, 0, 0);
+            }
         }
 
         private static Vector3 CrossProduct(Vector3 v1, Vector3 v2)
