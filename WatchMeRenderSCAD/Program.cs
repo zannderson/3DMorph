@@ -32,10 +32,10 @@ namespace WatchMeRenderSCAD
                 {
                     moveThese.Add(scadFile);
                     Console.Out.WriteLine(scadFile);
-                    var psi = Process.Start("openscad", string.Format("-o {0}.png --camera=43,34,324,77,0,0,3000 --imgsize=500,500 {0}", scadFile));
-                    var psi1 = Process.Start("openscad", string.Format("-o {0}-1.png --camera=43,34,324,77,0,90,3000 --imgsize=500,500 {0}", scadFile));
-                    var psi2 = Process.Start("openscad", string.Format("-o {0}-2.png --camera=43,34,324,77,0,180,3000 --imgsize=500,500 {0}", scadFile));
-                    var psi3 = Process.Start("openscad", string.Format("-o {0}-3.png --camera=43,34,324,77,0,270,3000 --imgsize=500,500 {0}", scadFile));
+                    var psi = Process.Start("openscad", string.Format("-o {0}.png --camera=0,0,0,77,0,0,750 --imgsize=500,500 {0}", scadFile));
+                    var psi1 = Process.Start("openscad", string.Format("-o {0}-1.png --camera=0,0,0,77,0,90,750 --imgsize=500,500 {0}", scadFile));
+                    var psi2 = Process.Start("openscad", string.Format("-o {0}-2.png --camera=0,0,0,77,0,180,750 --imgsize=500,500 {0}", scadFile));
+                    var psi3 = Process.Start("openscad", string.Format("-o {0}-3.png --camera=0,0,0,77,0,270,750 --imgsize=500,500 {0}", scadFile));
                     psis.Add(psi);
                     psis.Add(psi1);
                     psis.Add(psi2);

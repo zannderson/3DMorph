@@ -24,6 +24,7 @@ namespace Leonardo
 		private const double _largest = 200.0;
 
         private static double _startTime;
+        private static double _symmetryLikelihood;
 
         /* So, a general way of doing things:
 		 * -Choose some way of how to pick primitives
@@ -104,6 +105,7 @@ namespace Leonardo
 		{
 			_rand = new Random();
             _startTime = DateTime.Now.Ticks;
+            _symmetryLikelihood = 0.33;
             //int numBodies =  5 + _rand.Next(45);
 
             //Union u = new Union();
@@ -127,15 +129,16 @@ namespace Leonardo
             //NGonExtrusion what = new NGonExtrusion(20, 13, 15);
 
             //DoASingleOne(CutUpASphereHybrid);
-            DoABunchSpheresOnly(100);
-            //DoABunchOneMethod(100, VaryOnlyXYorZ);
+            DoABunchSpheresOnly(30);
+            //DoABunchOneMethod(100, SphereWithInnerSpheres);
+            //Console.In.Read();
         }
 
         private static void DoASingleOne(Func<CsgObject> thisOne)
         {
             CsgObject thing = thisOne();
 
-            OpenSCadOutput.Save(thing, "output.scad");
+            MoveAndScaleAndWriteToFile(thing, "output.scad");
         }
 
         private static void DoABunch(int howMany)
@@ -194,7 +197,7 @@ namespace Leonardo
                         theThing = GimmeAComposition();
                     }
                     //Console.Out.WriteLine("Writing file {0}", i);
-                    OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
+                    MoveAndScaleAndWriteToFile(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
                 }
                 catch (Exception e)
                 {
@@ -259,8 +262,15 @@ namespace Leonardo
                     {
                         theThing = GimmeACompositionSpheresOnly();
                     }
+
+                    var symmetry = _rand.NextDouble();
+                    if(symmetry >= _symmetryLikelihood)
+                    {
+                        theThing = MakeThisSymmetric(theThing);
+                    }
+
                     //Console.Out.WriteLine("Writing file {0}", i);
-                    OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
+                    MoveAndScaleAndWriteToFile(theThing, string.Format("{0}.scad", "image-" + i));
                 }
                 catch (Exception e)
                 {
@@ -326,7 +336,8 @@ namespace Leonardo
                         theThing = method();
                     }
                     //Console.Out.WriteLine("Writing file {0}", i);
-                    OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
+                    //OpenSCadOutput.Save(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
+                    MoveAndScaleAndWriteToFile(theThing, string.Format("{0}.scad", now.ToString("yyMMddHHmmssff")));
                 }
                 catch (Exception e)
                 {
@@ -336,18 +347,92 @@ namespace Leonardo
             }
         }
 
+        private static void MoveAndScaleAndWriteToFile(CsgObject o, string filename)
+        {
+            try
+            {
+                Axes longestAxis = Axes.X;
+                double longestExtent = double.MinValue;
+                if (o.XSize > longestExtent)
+                {
+                    longestExtent = o.XSize;
+                    longestAxis = Axes.X;
+                }
+                if (o.YSize > longestExtent)
+                {
+                    longestExtent = o.YSize;
+                    longestAxis = Axes.Y;
+                }
+                if (o.ZSize > longestExtent)
+                {
+                    longestExtent = o.ZSize;
+                    longestAxis = Axes.Z;
+                }
+
+                double ratio = 200.0 / longestExtent;
+                Scale s = new Scale(o, new Vector3(ratio, ratio, ratio));
+                OpenSCadOutput.Save(s, filename);
+            }
+            catch(Exception)
+            {
+                throw;
+                //this will get ignored at the next level. If we can't scale it we probs don't want it anyway, at this point...
+            }
+        }
+
         #endregion Main and Related
 
         #region Generation Methods
 
 		private static CsgObject SphereWithInnerSpheres()
 		{
+            int howMany = _rand.Next(2, 5);
+            double mainRadius = 200;
+            double thickness = 10;
+            double overlap = 1.1;
+            Union u = new Union();
 
+            for (int i = 0; i < howMany; i++)
+            {
+                var newSphere = HollowSphereWithHoles(mainRadius - thickness * i, thickness * overlap);
+                u.Add(newSphere);
+            }
+
+            return u;
 		}
+
+        private static CsgObject HollowSphereWithHoles(double radius, double thickness)
+        {
+            Sphere outer = new Sphere(radius);
+            Sphere inner = new Sphere(radius - thickness);
+            Difference d = new Difference(outer, inner);
+
+            int howManyHoles = _rand.Next(10, 30);
+            for (int i = 0; i < howManyHoles; i++)
+            {
+                Vector3 where = GimmeADirection();
+                double holeRadius = radius * 0.2 + _rand.NextDouble() * radius * 0.25;
+                Sphere holeSphere = new Sphere(holeRadius);
+                Translate t = new Translate(holeSphere, where * radius);
+                //Difference holeDiff = new Difference(d, t);
+                //d = holeDiff;
+                d.AddToSubtractList(t);
+            }
+
+            return d;
+        }
 
         private static CsgObject DoSomethingSymmetric()
         {
             CsgObject o = GimmeACompositionSpheresOnly();
+            Union u = new Union();
+            u.Add(o);
+            u.Add(o.NewMirrorAccrossX());
+            return u;
+        }
+
+        private static CsgObject MakeThisSymmetric(CsgObject o)
+        {
             Union u = new Union();
             u.Add(o);
             u.Add(o.NewMirrorAccrossX());
@@ -1008,34 +1093,44 @@ namespace Leonardo
             switch (whichOne)
             {
                 case 0:
-                    returnThis = StringEmUp();
+                    _symmetryLikelihood = 0.75;
+                    returnThis = SphereWithInnerSpheres();
                     break;
                 case 1:
+                    _symmetryLikelihood = 0.5;
                     returnThis = CutUpASphereHybrid();
                     break;
                 case 2:
+                    _symmetryLikelihood = 0.5;
                     returnThis = SphereWithSmartSurfaceSpheres();
                     break;
                 case 3:
+                    _symmetryLikelihood = 0.33;
                     returnThis = MakeRandomSpheres();
                     break;
                 case 4:
+                    _symmetryLikelihood = 0.25;
                     returnThis = StringEmUpCrazy();
                     break;
                 case 5:
+                    _symmetryLikelihood = 0.4;
                     returnThis = SphereWithSurfaceSpheres();
                     break;
                 case 6:
+                    _symmetryLikelihood = 0.5;
                     returnThis = CutUpASphereRandom();
                     break;
                 case 7:
+                    _symmetryLikelihood = 0.5;
                     returnThis = CutUpASphereRegular();
                     break;
 				case 8:
-					returnThis = DoSomethingSymmetric();
+                    _symmetryLikelihood = 0.5;
+                    returnThis = DoSomethingSymmetric();
 					break;
 				case 9:
-					returnThis = VaryOnlyXYorZ();
+                    _symmetryLikelihood = 0.25;
+                    returnThis = VaryOnlyXYorZ();
 					break;
                 default:
                     returnThis = new Sphere(GimmeASize());
